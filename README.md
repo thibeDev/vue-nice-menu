@@ -33,8 +33,8 @@ export default {
 Property|Type|Default|Required|Description
 ---|---|---|--- | ----
 items|Array|null|true|Array of object which represent the links {`id`:1,`url`:'\foo',`isRouterLink`:false,`iconClass`:'iconClass',`backgroundColor`:null,`color`:null,`openNewTab`:false,`openNewTab`:false,}
-position|top-left,top-right,bottom-left or bottom-right|top-left|The position of quick menu
-backgroundColor|String|#009dc7|The background color of quick menu
+position|top-left,top-right,bottom-left or bottom-right|top-left|false|The position of quick menu
+backgroundColor|String|#009dc7|false|The background color of quick menu
 color|String|#ffffff|false| The color of quick menu icon
 autoClose|Boolean|true|false| Defines if the menu get closed after click on submenu
 
