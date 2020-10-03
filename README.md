@@ -1,4 +1,4 @@
-# vue-quick-menu [![NPM version](https://img.shields.io/npm/v/vue-quick-menu.svg)](https://www.npmjs.com/package/vue-quick-menu)
+# vue-quick-menu [![NPM version](https://img.shields.io/npm/v/vue-quick-menu.svg)](https://www.npmjs.com/package/vue-nice-menu)
 
 > Beautiful little menu for Vuejs applications, it works on webpage and on mobile devices. The only limitation is the number of submenus, it can show 2, 3 or 4 submenus.
 > The starting point of this repo was 
