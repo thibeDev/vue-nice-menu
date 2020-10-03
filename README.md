@@ -56,5 +56,5 @@ You can access the menu's methoods through reference:
 <nice-menu ref="my-nice-menu" :items="items"></nice-menu>
 ```
 ``` javascript
-this.$refs.my-nice-menu.close()
+this.$refs['my-nice-menu'].close()
 ```
