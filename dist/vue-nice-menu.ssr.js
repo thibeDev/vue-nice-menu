@@ -17,21 +17,26 @@
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 var script = {
-  name: 'quickMenu',
+  name: 'niceMenu',
   props: {
-    menuCount: {
-      type: Number,
-      required: true,
-      default: 4
-    },
-    iconClass: {
-      type: Array,
-      required: true
-    },
-    menuUrlList: {
-      type: Array,
-      required: true
+    reference: {
+      required: false,
+      default: 'nice-menu'
     },
     backgroundColor: {
       type: String,
@@ -41,13 +46,17 @@ var script = {
       type: String,
       default: '#fff'
     },
-    isOpenNewTab: {
-      type: Boolean,
-      default: false
-    },
     position: {
       type: String,
       default: 'top-left'
+    },
+    items: {
+      type: Array,
+      required: true
+    },
+    autoClose: {
+      required: false,
+      default: true
     }
   },
   computed: {
@@ -80,13 +89,6 @@ var script = {
         color: this.color
       };
     },
-    subMenuStyle: function subMenuStyle() {
-      var style = {
-        backgroundColor: this.backgroundColor,
-        color: this.color
-      };
-      return style;
-    },
     isTop: function isTop() {
       return !!~this.position.toLowerCase().indexOf('top');
     },
@@ -99,51 +101,69 @@ var script = {
       menuSize: 60,
       subMenu4: [[["0", "-160"], ["-80", "-138.6"], ["-138.6", "-80"], ["-160", "0"]], [["0", "-160"], ["80", "-138.6"], ["138.6", "-80"], ["160", "0"]], [["0", "160"], ["138.6", "80"], ["80", "138.6"], ["160", "0"]], [["-160", "0"], ["-138.6", "80"], ["-80", "138.6"], ["0", "160"]]],
       subMenu3: [[["-160", "0"], ["-113", "-113"], ["0", "-160"]], [["0", "-160"], ["113", "-113"], ["160", "0"]], [["0", "160"], ["113", "113"], ["160", "0"]], [["-160", "0"], ["-113", "113"], ["0", "160"]]],
-      subMenu2: [[["-160", "0"], ["0", "-160"]], [["0", "-160"], ["160", "0"]], [["0", "160"], ["160", "0"]], [["-160", "0"], ["0", "160"]]]
+      subMenu2: [[["-160", "0"], ["0", "-160"]], [["0", "-160"], ["160", "0"]], [["0", "160"], ["160", "0"]], [["-160", "0"], ["0", "160"]]],
+      menuCount: 0
     };
   },
   methods: {
     getSubMenu: function getSubMenu(n) {
-      var menuPosition = this.menuCount === 4 ? this.subMenu4 : this.menuCount === 3 ? this.subMenu3 : this.subMenu2;
-      menuPosition = this.isTop && this.isLeft ? menuPosition[2] : this.isTop && !this.isLeft ? menuPosition[1] : !this.isTop && this.isLeft ? menuPosition[3] : menuPosition[0];
-      return {
-        top: menuPosition[n][0] + 'px',
-        left: menuPosition[n][1] + 'px'
-      };
+      if (this.menuCount) {
+        var menuPosition = this.menuCount === 4 ? this.subMenu4 : this.menuCount === 3 ? this.subMenu3 : this.subMenu2;
+        menuPosition = this.isTop && this.isLeft ? menuPosition[2] : this.isTop && !this.isLeft ? menuPosition[1] : !this.isTop && this.isLeft ? menuPosition[3] : menuPosition[0];
+        return {
+          top: menuPosition[n][0] + 'px',
+          left: menuPosition[n][1] + 'px'
+        };
+      }
     },
-    toggleMenu: function toggleMenu(e) {
-      var menuEl = this.$refs.quickMenu;
-      var menuIconEl = this.$refs.icon;
+    toggleMenu: function toggleMenu() {
+      var _this = this;
 
-      if (!~menuEl.className.indexOf(' active')) {
-        menuEl.className += ' active';
-        menuIconEl.forEach(function (element, index) {
-          element.className += ' menu-animate';
+      this.$emit('nice-menu-togling');
+      var menuEl = this.$refs[this.reference];
+
+      if (!menuEl.classList.contains('active')) {
+        menuEl.classList.add('active');
+        this.items.forEach(function (item) {
+          _this.$refs['icon-' + item.id][0].classList.add('menu-animate');
         });
+        this.$emit('nice-menu-opened');
       } else {
-        menuEl.className = menuEl.className.replace(' active', '');
-        menuIconEl.forEach(function (element, index) {
-          element.className = element.className.replace(' menu-animate', '');
+        menuEl.classList.remove('active');
+        this.items.forEach(function (item) {
+          _this.$refs['icon-' + item.id][0].classList.remove('menu-animate');
         });
+        this.$emit('nice-menu-closed');
       }
     },
-    processCallback: function processCallback(key) {
-      console.log(key);
-      this.$emit('process', key);
+    close: function close() {
+      var _this2 = this;
+
+      var menuEl = this.$refs[this.reference];
+      menuEl.classList.remove('active');
+      this.items.forEach(function (item) {
+        _this2.$refs['icon-' + item.id][0].classList.remove('menu-animate');
+      });
+      this.$emit('nice-menu-closed');
     },
-    mouseEnterSubMenu: function mouseEnterSubMenu(e) {
-      if (e.target.tagName === 'A') {
-        e.target.style.backgroundColor = this.lightenColor(this.backgroundColor, 20); // e.target.firstElementChild.style.backgroundColor = this.lightenColor(this.backgroundColor, 20)
-      } else if (e.target.tagName === 'I') {
-        e.target.parentElement.style.backgroundColor = this.lightenColor(this.backgroundColor, 20); // e.target.style.backgroundColor = this.lightenColor(this.backgroundColor, 20)
-      }
+    open: function open() {
+      var menuEl = this.$refs[this.reference];
+      var menuIconEl = this.$refs.icon;
+      menuEl.className = menuEl.className.replace(' active', '');
+      menuIconEl.forEach(function (element, index) {
+        element.className = element.className.replace(' menu-animate', '');
+      });
+      this.$emit('nice-menu-opened');
     },
-    mouseOutSubMenu: function mouseOutSubMenu(e) {
-      if (e.target.tagName === 'A') {
-        e.target.style.backgroundColor = this.backgroundColor; // e.target.firstElementChild.style.backgroundColor = this.backgroundColor
-      } else if (e.target.tagName === 'I') {
-        e.target.parentElement.style.backgroundColor = this.backgroundColor; // e.target.style.backgroundColor = this.backgroundColor
-      }
+    onClick: function onClick(item) {
+      this.$emit('sub-menu-clicked', item);
+      this.autoClose ? this.toggleMenu() : null;
+    },
+    mouseEnterSubMenu: function mouseEnterSubMenu(item) {
+      this.$refs['sub-menu-' + item.id][0].style.backgroundColor = this.lightenColor(item.backgroundColor || this.backgroundColor, 20);
+    },
+    mouseOutSubMenu: function mouseOutSubMenu(item) {
+      this.$refs['sub-menu-' + item.id][0].style.backgroundColor = item.backgroundColor || this.backgroundColor, 20;
     },
     lightenColor: function lightenColor(hex, amt) {
       var usePound = false;
@@ -161,6 +181,13 @@ var script = {
       var g = (num & 0x0000FF) + amt;
       if (g > 255) g = 255;else if (g < 0) g = 0;
       return (usePound ? '#' : '') + (g | b << 8 | r << 16).toString(16);
+    }
+  },
+  mounted: function mounted() {
+    this.menuCount = this.items.length;
+
+    if (this.menuCount !== 2 || this.menuCount !== 3 || this.menuCount !== 4 && !process.env.production) {
+      console.warn("[Vue warn]: test");
     }
   }
 };function normalizeComponent(template, style, script, scopeId, isFunctionalTemplate, moduleIdentifier /* server only */, shadowMode, createInjector, createInjectorSSR, createInjectorShadow) {
@@ -288,49 +315,59 @@ var __vue_render__ = function __vue_render__() {
   var _c = _vm._self._c || _h;
 
   return _c('div', {
-    ref: "quickMenu",
+    ref: _vm.reference,
     staticClass: "quick-menu",
     style: _vm.quickMenuStyle
-  }, [_vm._l(_vm.menuCount, function (n, key) {
-    return _vm._ssrNode("<div class=\"sub-menu\"" + _vm._ssrStyle(null, _vm.getSubMenu(n - 1), null) + ">", "</div>", [_vm.menuUrlList[n - 1].isLink ? _c('router-link', {
-      style: _vm.subMenuStyle,
+  }, [_vm._l(_vm.items, function (item, key) {
+    return _vm._ssrNode("<div class=\"sub-menu\"" + _vm._ssrStyle(null, _vm.getSubMenu(key), null) + ">", "</div>", [item.isRouterLink ? _c('router-link', {
+      ref: 'sub-menu-' + item.id,
+      refInFor: true,
+      style: {
+        backgroundColor: item.backgroundColor || _vm.backgroundColor,
+        color: item.color || _vm.color
+      },
       attrs: {
-        "to": _vm.menuUrlList[n - 1].url,
+        "to": item.url,
         "target": _vm.openNewTab
       },
       on: {
         "mouseover": function mouseover($event) {
           $event.stopPropagation();
-          return _vm.mouseEnterSubMenu($event);
+          return _vm.mouseEnterSubMenu(item);
         },
         "mouseout": function mouseout($event) {
           $event.stopPropagation();
-          return _vm.mouseOutSubMenu($event);
+          return _vm.mouseOutSubMenu(item);
         }
       }
     }, [_c('i', {
-      ref: "icon",
+      ref: 'icon-' + item.id,
       refInFor: true,
-      class: _vm.iconClass[n - 1]
+      class: item.iconClass
     })]) : _c('a', {
-      style: _vm.subMenuStyle,
+      ref: 'sub-menu-' + item.id,
+      refInFor: true,
+      style: {
+        backgroundColor: item.backgroundColor || _vm.backgroundColor,
+        color: item.color || _vm.color
+      },
       on: {
         "mouseover": function mouseover($event) {
           $event.stopPropagation();
-          return _vm.mouseEnterSubMenu($event);
+          return _vm.mouseEnterSubMenu(item);
         },
         "mouseout": function mouseout($event) {
           $event.stopPropagation();
-          return _vm.mouseOutSubMenu($event);
+          return _vm.mouseOutSubMenu(item);
         },
         "click": function click($event) {
-          return _vm.processCallback(key);
+          return _vm.onClick(item);
         }
       }
     }, [_c('i', {
-      ref: "icon",
+      ref: 'icon-' + item.id,
       refInFor: true,
-      class: _vm.iconClass[n - 1]
+      class: item.iconClass
     })])], 1);
   }), _vm._ssrNode(" <div class=\"menu\"" + _vm._ssrStyle(null, _vm.menuStyle, null) + "><div class=\"core-menu\"><div class=\"bar\"></div></div></div>")], 2);
 };
@@ -340,8 +377,8 @@ var __vue_staticRenderFns__ = [];
 
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-54864a8c_0", {
-    source: ".menu-animate{-webkit-animation:bounce 1s linear 1s;-moz-animation:bounce 1s linear 1s;animation:bounce 1s linear 1s}.quick-menu{color:#fff;position:fixed;width:60px;height:60px;-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease;right:30px}.quick-menu>.menu{display:block;position:absolute;border-radius:50%!important;width:60px;height:60px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.23),0 3px 10px rgba(0,0,0,.16);color:#fff;-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease}.quick-menu>.menu .core-menu{width:100%;height:100%;position:absolute;left:0;top:0;width:60px;height:60px;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-ms-transform:rotate(180deg);-o-transform:rotate(180deg);transform:rotate(180deg);-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease}.quick-menu>.menu .core-menu .bar{-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease;width:28px;height:3px;background:#fff;position:absolute;top:35%;margin-top:-1.5px;left:16px;-webkit-transform-origin:0 50%;-moz-transform-origin:0 50%;-ms-transform-origin:0 50%;-o-transform-origin:0 50%;transform-origin:0 50%}.quick-menu>.menu .core-menu .bar:after,.quick-menu>.menu .core-menu .bar:before{-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease;content:'';width:28px;height:3px;background:#fff;position:absolute;left:0;-webkit-transform-origin:0 50%;-moz-transform-origin:0 50%;-ms-transform-origin:0 50%;-o-transform-origin:0 50%;transform-origin:0 50%}.quick-menu>.menu .core-menu .bar:before{margin-top:30%}.quick-menu>.menu .core-menu .bar:after{margin-top:60%}.quick-menu .sub-menu{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;position:absolute;width:60px;height:60px;font-size:30px;text-align:center;border-radius:50%!important}.quick-menu .sub-menu a{outline:0;text-decoration:none;display:inline-block;border-radius:50%!important;width:100%;height:100%}.quick-menu .sub-menu a i{outline:0;font-size:30px;margin-top:12px;background:0 0}.quick-menu .sub-menu a i:before{vertical-align:middle}.quick-menu .sub-menu a:hover{cursor:pointer}.quick-menu.active{-webkit-transform:rotate(0)!important;-moz-transform:rotate(0)!important;-ms-transform:rotate(0)!important;-o-transform:rotate(0)!important;transform:rotate(0)!important}.quick-menu.active .menu{-webkit-transform:scale(.7);-moz-transform:scale(.7);-ms-transform:scale(.7);-o-transform:scale(.7);transform:scale(.7)}.quick-menu.active .menu .bar{top:50%;margin-top:-1.5px;left:50%;margin-left:-12px;-webkit-transform-origin:50% 50%;-moz-transform-origin:50% 50%;-ms-transform-origin:50% 50%;-o-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-transform:rotate(405deg);-moz-transform:rotate(405deg);-ms-transform:rotate(405deg);-o-transform:rotate(405deg);transform:rotate(405deg)}.quick-menu.active .menu .bar:before{-webkit-transform-origin:50% 50%;-moz-transform-origin:50% 50%;-ms-transform-origin:50% 50%;-o-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-transform:rotate(-450deg);-moz-transform:rotate(-450deg);-ms-transform:rotate(-450deg);-o-transform:rotate(-450deg);transform:rotate(-450deg);margin-top:0}.quick-menu.active .menu .bar:after{opacity:0}@-webkit-keyframes bounce{0%,100%{-webkit-transform:translateY(0)}10%{-webkit-transform:translateY(6px)}30%{-webkit-transform:translateY(-4px)}70%{-webkit-transform:translateY(3px)}90%{-webkit-transform:translateY(-2px)}}@-moz-keyframes bounce{0%,100%{-moz-transform:translateY(0)}10%{-moz-transform:translateY(6px)}30%{-moz-transform:translateY(-4px)}70%{-moz-transform:translateY(3px)}90%{-moz-transform:translateY(-2px)}}@keyframes bounce{0%,100%{-webkit-transform:translateY(0);-moz-transform:translateY(0);-ms-transform:translateY(0);-o-transform:translateY(0);transform:translateY(0)}10%{-webkit-transform:translateY(6px);-moz-transform:translateY(6px);-ms-transform:translateY(6px);-o-transform:translateY(6px);transform:translateY(6px)}30%{-webkit-transform:translateY(-4px);-moz-transform:translateY(-4px);-ms-transform:translateY(-4px);-o-transform:translateY(-4px);transform:translateY(-4px)}70%{-webkit-transform:translateY(3px);-moz-transform:translateY(3px);-ms-transform:translateY(3px);-o-transform:translateY(3px);transform:translateY(3px)}90%{-webkit-transform:translateY(-2px);-moz-transform:translateY(-2px);-ms-transform:translateY(-2px);-o-transform:translateY(-2px);transform:translateY(-2px)}}",
+  inject("data-v-4dc55938_0", {
+    source: ".menu-animate{-webkit-animation:bounce 1s linear 1s;-moz-animation:bounce 1s linear 1s;animation:bounce 1s linear 1s}.quick-menu{color:#fff;position:fixed;width:60px;height:60px;-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease;right:30px}.quick-menu>.menu{display:block;position:absolute;border-radius:50%!important;width:60px;height:60px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.23),0 3px 10px rgba(0,0,0,.16);color:#fff;-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease}.quick-menu>.menu .core-menu{position:absolute;left:0;top:0;width:60px;height:60px;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-ms-transform:rotate(180deg);-o-transform:rotate(180deg);transform:rotate(180deg);-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease}.quick-menu>.menu .core-menu .bar{-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease;width:28px;height:3px;background:#fff;position:absolute;top:35%;margin-top:-1.5px;left:16px;-webkit-transform-origin:0 50%;-moz-transform-origin:0 50%;-ms-transform-origin:0 50%;-o-transform-origin:0 50%;transform-origin:0 50%}.quick-menu>.menu .core-menu .bar:after,.quick-menu>.menu .core-menu .bar:before{-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease;content:'';width:28px;height:3px;background:#fff;position:absolute;left:0;-webkit-transform-origin:0 50%;-moz-transform-origin:0 50%;-ms-transform-origin:0 50%;-o-transform-origin:0 50%;transform-origin:0 50%}.quick-menu>.menu .core-menu .bar:before{margin-top:30%}.quick-menu>.menu .core-menu .bar:after{margin-top:60%}.quick-menu .sub-menu{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;position:absolute;width:60px;height:60px;font-size:30px;text-align:center;border-radius:50%!important}.quick-menu .sub-menu a{outline:0;text-decoration:none;display:inline-block;border-radius:50%!important;width:100%;height:100%}.quick-menu .sub-menu a i{outline:0;font-size:30px;margin-top:12px;background:0 0}.quick-menu .sub-menu a i:before{vertical-align:middle}.quick-menu .sub-menu a:hover{cursor:pointer}.quick-menu.active{-webkit-transform:rotate(0)!important;-moz-transform:rotate(0)!important;-ms-transform:rotate(0)!important;-o-transform:rotate(0)!important;transform:rotate(0)!important}.quick-menu.active .menu{-webkit-transform:scale(.7);-moz-transform:scale(.7);-ms-transform:scale(.7);-o-transform:scale(.7);transform:scale(.7)}.quick-menu.active .menu .bar{top:50%;margin-top:-1.5px;left:50%;margin-left:-12px;-webkit-transform-origin:50% 50%;-moz-transform-origin:50% 50%;-ms-transform-origin:50% 50%;-o-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-transform:rotate(405deg);-moz-transform:rotate(405deg);-ms-transform:rotate(405deg);-o-transform:rotate(405deg);transform:rotate(405deg)}.quick-menu.active .menu .bar:before{-webkit-transform-origin:50% 50%;-moz-transform-origin:50% 50%;-ms-transform-origin:50% 50%;-o-transform-origin:50% 50%;transform-origin:50% 50%;-webkit-transform:rotate(-450deg);-moz-transform:rotate(-450deg);-ms-transform:rotate(-450deg);-o-transform:rotate(-450deg);transform:rotate(-450deg);margin-top:0}.quick-menu.active .menu .bar:after{opacity:0}@-webkit-keyframes bounce{0%,100%{-webkit-transform:translateY(0)}10%{-webkit-transform:translateY(6px)}30%{-webkit-transform:translateY(-4px)}70%{-webkit-transform:translateY(3px)}90%{-webkit-transform:translateY(-2px)}}@-moz-keyframes bounce{0%,100%{-moz-transform:translateY(0)}10%{-moz-transform:translateY(6px)}30%{-moz-transform:translateY(-4px)}70%{-moz-transform:translateY(3px)}90%{-moz-transform:translateY(-2px)}}@keyframes bounce{0%,100%{-webkit-transform:translateY(0);-moz-transform:translateY(0);-ms-transform:translateY(0);-o-transform:translateY(0);transform:translateY(0)}10%{-webkit-transform:translateY(6px);-moz-transform:translateY(6px);-ms-transform:translateY(6px);-o-transform:translateY(6px);transform:translateY(6px)}30%{-webkit-transform:translateY(-4px);-moz-transform:translateY(-4px);-ms-transform:translateY(-4px);-o-transform:translateY(-4px);transform:translateY(-4px)}70%{-webkit-transform:translateY(3px);-moz-transform:translateY(3px);-ms-transform:translateY(3px);-o-transform:translateY(3px);transform:translateY(3px)}90%{-webkit-transform:translateY(-2px);-moz-transform:translateY(-2px);-ms-transform:translateY(-2px);-o-transform:translateY(-2px);transform:translateY(-2px)}}",
     map: undefined,
     media: undefined
   });
@@ -352,7 +389,7 @@ var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
 var __vue_scope_id__ = undefined;
 /* module identifier */
 
-var __vue_module_identifier__ = "data-v-54864a8c";
+var __vue_module_identifier__ = "data-v-4dc55938";
 /* functional template */
 
 var __vue_is_functional_template__ = false;

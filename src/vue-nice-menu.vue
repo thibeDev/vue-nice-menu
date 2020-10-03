@@ -1,13 +1,27 @@
 <template>
-    <div class="quick-menu" ref="quickMenu" :style="quickMenuStyle">
+    <div  class="quick-menu" :ref="reference" :style="quickMenuStyle">
         <div v-for="(item,key) in items" class="sub-menu" :style="getSubMenu(key)">
-            <router-link v-if="item.isRouterLink" :to="item.url" :target="openNewTab"
-                         :style="subMenuStyle" @mouseover.stop="mouseEnterSubMenu" @mouseout.stop="mouseOutSubMenu">
-                <i :class="item.iconClass" ref="icon"></i>
+            <router-link :ref="'sub-menu-'+item.id"
+                         v-if="item.isRouterLink"
+                         :to="item.url"
+                         :target="openNewTab"
+                         :style="{
+                             backgroundColor: item.backgroundColor || backgroundColor,
+                             color: item.color || color
+                         }"
+                         @mouseover.stop="mouseEnterSubMenu(item)"
+                         @mouseout.stop="mouseOutSubMenu(item)">
+                <i :class="item.iconClass" :ref="'icon-'+item.id"></i>
             </router-link>
-            <a v-else :style="subMenuStyle" @mouseover.stop="mouseEnterSubMenu" @mouseout.stop="mouseOutSubMenu"
-               @click="onClick(key)">
-                <i :class="item.iconClass" ref="icon"></i>
+            <a :ref="'sub-menu-'+item.id" v-else
+               :style="{
+                    backgroundColor: item.backgroundColor || backgroundColor,
+                    color: item.color || color
+               }"
+               @mouseover.stop="mouseEnterSubMenu(item)"
+               @mouseout.stop="mouseOutSubMenu(item)"
+               @click="onClick(item)">
+                <i :class="item.iconClass" :ref="'icon-'+item.id"></i>
             </a>
         </div>
         <div class='menu' :style="menuStyle">
@@ -19,12 +33,11 @@
 </template>
 <script>
     export default {
-        name: 'quickMenu',
+        name: 'niceMenu',
         props: {
-            menuCount: {
-                type: Number,
-                required: true,
-                default: 4
+            reference: {
+                required: false,
+                default: 'nice-menu'
             },
             backgroundColor: {
                 type: String,
@@ -34,28 +47,28 @@
                 type: String,
                 default: '#fff'
             },
-            isOpenNewTab: {
-                type: Boolean,
-                default: false
-            },
             position: {
                 type: String,
                 default: 'top-left'
             },
             items: {
                 type: Array,
-                required: false
-            }
+                required: true
+            },
+            autoClose: {
+                required: false,
+                default: true
+            },
         },
         computed: {
             openNewTab() {
                 return this.isOpenNewTab ? '_blank' : '_self'
             },
             quickMenuStyle() {
-                const topPosition = {top: '30px'},
-                    bottomPosition = {bottom: '30px'},
-                    leftPosition = {left: '30px'},
-                    rightPosition = {right: '30px'}
+                const   topPosition = {top: '30px'},
+                        bottomPosition = {bottom: '30px'},
+                        leftPosition = {left: '30px'},
+                        rightPosition = {right: '30px'}
 
                 let style = this.isTop ? topPosition : bottomPosition
                 Object.assign(style, this.isLeft ? leftPosition : rightPosition)
@@ -64,17 +77,10 @@
             },
             menuStyle() {
                 return {
-                    backgroundColor: this.backgroundColor,
+                    backgroundColor:  this.backgroundColor,
                     color: this.color
                 }
             },
-            subMenuStyle() {
-                return {
-                    backgroundColor: this.backgroundColor,
-                    color: this.color
-                }
-            },
-
             isTop() {
                 return !!~this.position.toLowerCase().indexOf('top')
             },
@@ -87,70 +93,64 @@
                 menuSize: 60,
                 subMenu4: [[["0", "-160"], ["-80", "-138.6"], ["-138.6", "-80"], ["-160", "0"]], [["0", "-160"], ["80", "-138.6"], ["138.6", "-80"], ["160", "0"]], [["0", "160"], ["138.6", "80"], ["80", "138.6"], ["160", "0"]], [["-160", "0"], ["-138.6", "80"], ["-80", "138.6"], ["0", "160"]]],
                 subMenu3: [[["-160", "0"], ["-113", "-113"], ["0", "-160"]], [["0", "-160"], ["113", "-113"], ["160", "0"]], [["0", "160"], ["113", "113"], ["160", "0"]], [["-160", "0"], ["-113", "113"], ["0", "160"]]],
-                subMenu2: [[["-160", "0"], ["0", "-160"]], [["0", "-160"], ["160", "0"]], [["0", "160"], ["160", "0"]], [["-160", "0"], ["0", "160"]]]
+                subMenu2: [[["-160", "0"], ["0", "-160"]], [["0", "-160"], ["160", "0"]], [["0", "160"], ["160", "0"]], [["-160", "0"], ["0", "160"]]],
+                menuCount: 0,
             }
         },
         methods: {
             getSubMenu(n) {
-                console.log(n)
-                let menuPosition = this.menuCount === 4 ? this.subMenu4 : this.menuCount === 3 ? this.subMenu3 : this.subMenu2
-                menuPosition = this.isTop && this.isLeft ? menuPosition[2] : this.isTop && !this.isLeft ? menuPosition[1] : !this.isTop && this.isLeft ? menuPosition[3] : menuPosition[0]
-                return {top: menuPosition[n][0] + 'px', left: menuPosition[n][1] + 'px'}
-            },
-            toggleMenu(e) {
-                let menuEl = this.$refs.quickMenu
-                let menuIconEl = this.$refs.icon
-                if (!~menuEl.className.indexOf(' active')) {
-                    menuEl.className += ' active';
-                    menuIconEl.forEach(function (element, index) {
-                        element.className += ' menu-animate';
-                    });
-                } else {
-                    menuEl.className = menuEl.className.replace(' active', '')
-                    menuIconEl.forEach(function (element, index) {
-                        element.className = element.className.replace(' menu-animate', '')
-                    });
+                if(this.menuCount){
+                    let menuPosition = this.menuCount === 4 ? this.subMenu4 : this.menuCount === 3 ? this.subMenu3 : this.subMenu2
+                    menuPosition = this.isTop && this.isLeft ? menuPosition[2] : this.isTop && !this.isLeft ? menuPosition[1] : !this.isTop && this.isLeft ? menuPosition[3] : menuPosition[0]
+                    return {top: menuPosition[n][0] + 'px', left: menuPosition[n][1] + 'px'}
                 }
-
             },
-            closeMenu() {
-                let menuEl = this.$refs.quickMenu
-                let menuIconEl = this.$refs.icon
-                menuEl.className += ' active';
-                menuIconEl.forEach(function (element, index) {
-                    element.className += ' menu-animate';
-                });
+            toggleMenu() {
+                this.$emit('nice-menu-togling')
+                let menuEl = this.$refs[this.reference]
+                if (!menuEl.classList.contains('active')) {
+                    menuEl.classList.add('active');
+                    this.items.forEach(item => {
+                        this.$refs['icon-'+item.id][0].classList.add('menu-animate')
+                    })
+                    this.$emit('nice-menu-opened')
+                } else {
+                    menuEl.classList.remove('active');
+                    this.items.forEach(item => {
+                        this.$refs['icon-'+item.id][0].classList.remove('menu-animate')
+                    })
+                    this.$emit('nice-menu-closed')
+                }
             },
-            openMenu() {
-                let menuEl = this.$refs.quickMenu
+            close() {
+                let menuEl = this.$refs[this.reference]
+                menuEl.classList.remove('active')
+                this.items.forEach(item => {
+                    this.$refs['icon-'+item.id][0].classList.remove('menu-animate')
+                })
+                this.$emit('nice-menu-closed')
+            },
+            open() {
+                let menuEl = this.$refs[this.reference]
                 let menuIconEl = this.$refs.icon
                 menuEl.className = menuEl.className.replace(' active', '')
                 menuIconEl.forEach(function (element, index) {
                     element.className = element.className.replace(' menu-animate', '')
                 });
+                this.$emit('nice-menu-opened')
             },
-            onClick(key) {
-                this.$emit('process', key)
-                this.toggleMenu()
+            onClick(item) {
+                this.$emit('sub-menu-clicked', item)
+                this.autoClose ? this.toggleMenu() : null
             },
-            mouseEnterSubMenu(e) {
-                if (e.target.tagName === 'A') {
-                    e.target.style.backgroundColor = this.lightenColor(this.backgroundColor, 20)
-                } else if (e.target.tagName === 'I') {
-                    e.target.parentElement.style.backgroundColor = this.lightenColor(this.backgroundColor, 20)
-                }
-
+            mouseEnterSubMenu(item) {
+               this.$refs['sub-menu-'+item.id][0].style.backgroundColor = this.lightenColor(item.backgroundColor || this.backgroundColor, 20)
             },
-            mouseOutSubMenu(e) {
-                if (e.target.tagName === 'A') {
-                    e.target.style.backgroundColor = this.backgroundColor
-                } else if (e.target.tagName === 'I') {
-                    e.target.parentElement.style.backgroundColor = this.backgroundColor
-                }
+            mouseOutSubMenu(item) {
+                this.$refs['sub-menu-'+item.id][0].style.backgroundColor = item.backgroundColor || this.backgroundColor, 20
 
             },
             lightenColor(hex, amt) {
-
                 let usePound = false
 
                 if (hex[0] === '#') {
@@ -174,7 +174,14 @@
                 if (g > 255) g = 255
                 else if (g < 0) g = 0
                 return (usePound ? '#' : '') + (g | (b << 8) | (r << 16)).toString(16)
+            },
+        },
+        mounted() {
+            this.menuCount = this.items.length
+            if(this.menuCount !==2 ||this.menuCount !==3 ||this.menuCount !==4 && !process.env.production){
+                console.warn(`[Vue warn]: test`);
             }
+
         }
     }
 </script>
@@ -207,11 +214,9 @@
             -moz-transition: all 1s ease;
             transition: all 1s ease;
             .core-menu {
-                width: 100%;
-                height: 100%;
                 position: absolute;
-                left: 0px;
-                top: 0px;
+                left: 0;
+                top: 0;
                 width: 60px;
                 height: 60px;
                 -webkit-transform: rotate(180deg);
