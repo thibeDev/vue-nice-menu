@@ -1,6 +1,6 @@
 {
   "name": "vue-nice-menu",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "dist/vue-nice-menu.ssr.js",
   "browser": "dist/vue-nice-menu.esm.js",
