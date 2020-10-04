@@ -1,7 +1,9 @@
 {
   "name": "vue-nice-menu",
   "version": "1.0.4",
-  "description": "",
+  "description": "Nice menu for Vue js applications",
+  "homepage": "https://github.com/thibeDev/vue-nice-menu",
+  "keywords": ["Vuejs", "menu"],
   "main": "dist/vue-nice-menu.ssr.js",
   "browser": "dist/vue-nice-menu.esm.js",
   "module": "dist/vue-nice-menu.esm.js",

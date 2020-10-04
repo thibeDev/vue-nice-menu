@@ -1,10 +1,11 @@
 <template>
     <div  class="quick-menu" :ref="reference" :style="quickMenuStyle">
-        <div v-for="(item,key) in items" class="sub-menu" :style="getSubMenu(key)">
+        <div v-for="(item,key) in submenus" class="sub-menu" :key="key" :style="getSubMenu(key)">
             <router-link :ref="'sub-menu-'+item.id"
                          v-if="item.isRouterLink"
                          :to="item.url"
                          :target="openNewTab"
+                         v-bind="item.attributes"
                          :style="{
                              backgroundColor: item.backgroundColor || backgroundColor,
                              color: item.color || color
@@ -14,6 +15,7 @@
                 <i :class="item.iconClass" :ref="'icon-'+item.id"></i>
             </router-link>
             <a :ref="'sub-menu-'+item.id" v-else
+               v-bind="item.attributes"
                :style="{
                     backgroundColor: item.backgroundColor || backgroundColor,
                     color: item.color || color
@@ -21,7 +23,7 @@
                @mouseover.stop="mouseEnterSubMenu(item)"
                @mouseout.stop="mouseOutSubMenu(item)"
                @click="onClick(item)">
-                <i :class="item.iconClass" :ref="'icon-'+item.id"></i>
+                <i :key="'icon-'+item.id" :class="item.iconClass" :ref="'icon-'+item.id"></i>
             </a>
         </div>
         <div class='menu' :style="menuStyle">
@@ -95,6 +97,7 @@
                 subMenu3: [[["-160", "0"], ["-113", "-113"], ["0", "-160"]], [["0", "-160"], ["113", "-113"], ["160", "0"]], [["0", "160"], ["113", "113"], ["160", "0"]], [["-160", "0"], ["-113", "113"], ["0", "160"]]],
                 subMenu2: [[["-160", "0"], ["0", "-160"]], [["0", "-160"], ["160", "0"]], [["0", "160"], ["160", "0"]], [["-160", "0"], ["0", "160"]]],
                 menuCount: 0,
+                submenus: this.items
             }
         },
         methods: {

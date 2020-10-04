@@ -5,6 +5,9 @@
 [this abandonned one](https://github.com/AshleyLv/vue-quick-menu/blob/master/README.md),
 > I made some changes to extends its behaviour, make it more customisable and user friendly, thanks to AshleyLv for the good job about css
 
+
+![](nice-menu.gif)
+
 ## Installation
 
 ``` bash
@@ -38,6 +41,20 @@ backgroundColor|String|#009dc7|false|The background color of quick menu
 color|String|#ffffff|false| The color of quick menu icon
 autoClose|Boolean|true|false| Defines if the menu get closed after click on submenu
 
+the menu item's objects should look like this: 
+``` javascript
+{
+    id: 1, //required
+    url: '/',
+    isRouterLink: false, //not required, default false
+    iconClass: 'fas fa-home',
+    backgroundColor: null, //not required, default main backgroundColor
+    color: '#0000', // not required, default main color
+    attributes: [   //not required, use it to inject attributes to the generated link
+        'data-foo': 'bar'
+        ]
+    },
+```
 
 ## Events
 
@@ -57,4 +74,5 @@ You can access the menu's methoods through reference:
 ```
 ``` javascript
 this.$refs['my-nice-menu'].close()
+this.$refs['my-nice-menu'].open()
 ```
